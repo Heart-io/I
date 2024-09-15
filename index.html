@@ -21,7 +21,7 @@
     }
     .form-container, .message-container, .admin-console, .group-chat-container {
       width: 100%;
-      max-width: 800px;
+      max-width: 600px;
       background: #ffffff;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -178,10 +178,6 @@
         <input type="text" id="group-name" placeholder="Enter group name">
       </div>
       <div class="form-group">
-        <label for="group-size">Group Size</label>
-        <input type="number" id="group-size" placeholder="Enter max group size (1-50)" min="1" max="50">
-      </div>
-      <div class="form-group">
         <label for="group-users">Add Users</label>
         <select id="group-users" multiple>
           <!-- Options will be dynamically added here -->
@@ -246,13 +242,116 @@
       const password = document.getElementById('password').value;
       const statusElement = document.getElementById('username-status');
 
-      let users = getUsers();
-      if (users.includes(username)) {
+      if (username === "taken") {
         statusElement.textContent = "Username is taken";
         statusElement.style.color = "red";
       } else {
-        users.push(username);
-        saveUsers(users);
         statusElement.textContent = "Signup successful";
         statusElement.style.color = "green";
-        document.getElementById('
+        document.getElementById('signup').style.display = 'none';
+        document.getElementById('messages').style.display = 'block';
+        document.getElementById('group-chat').style.display = 'block';
+        if (true) { // Simulate admin status
+          document.getElementById('admin-console').style.display = 'block';
+        }
+        loadMessages();
+        loadUsers();
+      }
+    }
+
+    // Simulate sending a message
+    function sendMessage() {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value;
+      const filterEnabled = document.getElementById('chat-filter').checked;
+      const messages = getMessages();
+
+      if (message.trim() !== '') {
+        const filteredMessage = filterEnabled ? '#'.repeat(message.length) : message;
+        const newMessage = {
+          username: 'User', // Example user
+          text: filteredMessage
+        };
+
+        messages.push(newMessage);
+        saveMessages(messages);
+        displayMessages();
+        messageInput.value = '';
+      }
+    }
+
+    // Display messages
+    function displayMessages() {
+      const messages = getMessages();
+      const messageList = document.getElementById('message-list');
+      messageList.innerHTML = '';
+
+      messages.forEach((message, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="message-info">${message.username} says:</div>
+          <div class="message-text">${message.text}</div>
+          <button class="delete-btn" onclick="deleteMessage(${index})">Delete</button>
+        `;
+        messageList.appendChild(li);
+      });
+    }
+
+    // Delete a message
+    function deleteMessage(index) {
+      const messages = getMessages();
+      messages.splice(index, 1);
+      saveMessages(messages);
+      displayMessages();
+    }
+
+    // Simulate banning a user
+    function banUser() {
+      const username = document.getElementById('ban-username').value;
+      const duration = parseInt(document.getElementById('ban-duration').value, 10);
+      
+      if (username && duration) {
+        const bannedUsers = getBannedUsers();
+        bannedUsers.push({ username, expiry: Date.now() + duration * 60000 });
+        saveBannedUsers(bannedUsers);
+        alert(`User ${username} has been banned for ${duration} minutes.`);
+      }
+    }
+
+    // Load messages
+    function loadMessages() {
+      displayMessages();
+    }
+
+    // Load users
+    function loadUsers() {
+      const users = getUsers();
+      const userSelect = document.getElementById('group-users');
+      userSelect.innerHTML = '';
+
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user;
+        option.textContent = user;
+        userSelect.appendChild(option);
+      });
+    }
+
+    // Create group chat
+    function createGroupChat() {
+      const groupName = document.getElementById('group-name').value;
+      const userSelect = document.getElementById('group-users');
+      const selectedUsers = Array.from(userSelect.selectedOptions).map(option => option.value);
+
+      if (groupName && selectedUsers.length > 0 && selectedUsers.length <= 50) {
+        const groupChats = getGroupChats();
+        groupChats.push({ groupName, users: selectedUsers });
+        saveGroupChats(groupChats);
+        alert(`Group chat "${groupName}" created with ${selectedUsers.length} users.`);
+      } else {
+        alert('Please enter a group name and select up to 50 users.');
+      }
+    }
+  </script>
+</body>
+</html>
