@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Chat System</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    .form-container, .message-container, .admin-console, .group-chat-container {
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-top: 1rem;
+    }
+    .form-container h2, .message-container h2, .admin-console h2, .group-chat-container h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-group input[type="checkbox"] {
+      width: auto;
+    }
+    .form-group button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .form-group button:hover {
+      background-color: #45a049;
+    }
+    .message-container ul {
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .message-container li {
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .message-container li .message-info {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .message-container li .message-text {
+      word-wrap: break-word;
+    }
+    .message-container li:hover .delete-btn {
+      display: block;
+    }
+    .delete-btn {
+      background: #e57373;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      display: none;
+    }
+    .admin-console input, .admin-console button {
+      margin-bottom: 0.5rem;
+    }
+    .admin-console button {
+      background-color: #ff5722;
+    }
+    .admin-console button:hover {
+      background-color: #e64a19;
+    }
+    .group-chat-container select, .group-chat-container input {
+      margin-bottom: 0.5rem;
+    }
+    .group-chat-container button {
+      background-color: #2196F3;
+      color: white;
+    }
+    .group-chat-container button:hover {
+      background-color: #1976D2;
+    }
+    .gif {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Signup Form -->
+    <div id="signup" class="form-container">
+      <h2>Signup</h2>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter username">
+        <span id="username-status"></span>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password">
+        <input type="checkbox" id="show-password"> Show Password
+      </div>
+      <div class="form-group">
+        <button onclick="signup()">Signup</button>
+      </div>
+    </div>
+
+    <!-- Message Container -->
+    <div id="messages" class="message-container" style="display: none;">
+      <h2>Messages</h2>
+      <ul id="message-list"></ul>
+      <div class="form-group">
+        <input type="text" id="message-input" placeholder="Enter your message">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="chat-filter"> Apply Chat Filter (Hashtags)
+      </div>
+    </div>
+
+    <!-- Admin Console -->
+    <div id="admin-console" class="admin-console" style="display: none;">
+      <h2>Admin Console</h2>
+      <div class="form-group">
+        <label for="ban-username">Username to Ban</label>
+        <input type="text" id="ban-username" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label for="ban-duration">Ban Duration (minutes)</label>
+        <input type="number" id="ban-duration" placeholder="Enter duration">
+      </div>
+      <div class="form-group">
+        <button onclick="banUser()">Ban User</button>
+      </div>
+    </div>
+
+    <!-- Group Chat Container -->
+    <div id="group-chat" class="group-chat-container" style="display: none;">
+      <h2>Group Chat</h2>
+      <div class="form-group">
+        <label for="group-name">Group Name</label>
+        <input type="text" id="group-name" placeholder="Enter group name">
+      </div>
+      <div class="form-group">
+        <label for="group-size">Group Size</label>
+        <input type="number" id="group-size" placeholder="Enter max group size (1-50)" min="1" max="50">
+      </div>
+      <div class="form-group">
+        <label for="group-users">Add Users</label>
+        <select id="group-users" multiple>
+          <!-- Options will be dynamically added here -->
+        </select>
+      </div>
+      <div class="form-group">
+        <button onclick="createGroupChat()">Create Group Chat</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize storage
+    const storage = window.localStorage;
+
+    // Helper functions
+    function getMessages() {
+      const messages = storage.getItem('messages');
+      return messages ? JSON.parse(messages) : [];
+    }
+
+    function saveMessages(messages) {
+      storage.setItem('messages', JSON.stringify(messages));
+    }
+
+    function getBannedUsers() {
+      const banned = storage.getItem('bannedUsers');
+      return banned ? JSON.parse(banned) : [];
+    }
+
+    function saveBannedUsers(users) {
+      storage.setItem('bannedUsers', JSON.stringify(users));
+    }
+
+    function getUsers() {
+      const users = storage.getItem('users');
+      return users ? JSON.parse(users) : [];
+    }
+
+    function saveUsers(users) {
+      storage.setItem('users', JSON.stringify(users));
+    }
+
+    function getGroupChats() {
+      const groups = storage.getItem('groupChats');
+      return groups ? JSON.parse(groups) : [];
+    }
+
+    function saveGroupChats(groups) {
+      storage.setItem('groupChats', JSON.stringify(groups));
+    }
+
+    // Show or hide password
+    document.getElementById('show-password').addEventListener('change', function() {
+      const passwordInput = document.getElementById('password');
+      passwordInput.type = this.checked ? 'text' : 'password';
+    });
+
+    // Simulate signup
+    function signup() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const statusElement = document.getElementById('username-status');
+
+      let users = getUsers();
+      if (users.includes(username)) {
+        statusElement.textContent = "Username is taken";
+        statusElement.style.color = "red";
+      } else {
+        users.push(username);
+        saveUsers(users);
+        statusElement.textContent = "Signup successful";
+        statusElement.style.color = "green";
+        document.getElementById('
